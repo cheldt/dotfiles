@@ -102,27 +102,38 @@ chpwd() {
 }
 
 function prompt_precmd {
-  local untracked=0  
-
+  local deleted=0
+  local modified=0
+  local untracked=0
+  
   if [ "${git_pwd_is_worktree}" = 'true' ]; then 
     local status_file_list="$(git status --porcelain)"
 
     while IFS= read -r line; do
-        if begin_with "${line:0:2}" " M"; then
+        local pattern="${line:0:2}"
+
+        if [ "${pattern}" = " D" ]; then
+           deleted=$((deleted + 1))
+        fi
+
+        if [ "${pattern}" = " M" ]; then
+           modified=$((modified + 1))
+        fi
+
+        if [ "${pattern}" = '??' ]; then
+           untracked=$((untracked + 1))
         fi
     done <<< "$status_file_list"
-  fi 
 
-  # Check for untracked files or updated submodules since vcs_info does not.
-  if [[ -n $(git ls-files --other --exclude-standard 2> /dev/null) ]]; then
-    branch_format="(${fg_bold[yellow]}%b%i${reset_color}%f%u%c tf${fg[red]}●%f)"
-  else
-    branch_format="(${fg_bold[yellow]}%b%i${reset_color}%f%u%c tf${fg[green]}●%f)"
-  fi
+    local filestatus="${fg[red]}×${reset_color}(${deleted}) ${fg[yellow]}!=${reset_color}(${modified}) ${fg[cyan]}?${reset_color}(${untracked})"
+    local branch="${fg_bold[yellow]}%b%i${reset_color}%f%u%c"
 
-  zstyle ':vcs_info:*:prompt:*' formats "${branch_format}"
+    branch_format="(${branch} ${filestatus})"
+
+    zstyle ':vcs_info:*:prompt:*' formats "${branch_format}"
 	
-  vcs_info 'prompt'
+    vcs_info 'prompt'
+  fi
 }
 
 
@@ -149,8 +160,8 @@ function prompt_setup {
   #   %S - path in the repository
   local branch_format=" (${fg_bold[yellow]}%b%f%u%c)"
   local action_format=" (%a%f)"
-  local unstaged_format=" sf${fg[red]}●%f"
-  local staged_format=" sf${fg[green]}●%f"
+  local unstaged_format=" ${fg[red]}●%f"
+  local staged_format=" ${fg[green]}●%f"
 
   # Set vcs_info parameters.
   zstyle ':vcs_info:*' enable bzr git hg svn
