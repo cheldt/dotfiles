@@ -105,7 +105,7 @@ display_counter() {
   local counter=${1}
   local format="${fg[red]}"
   
-  if [ ${counter} = 0 ]; then
+  if (( counter == 0 )); then
     format="${fg[green]}"
   fi
   
@@ -150,8 +150,10 @@ function prompt_precmd {
 
     local staged_status
     
-    if [ ${staged} -lt ${sum} ]; then
+    if (( staged < sum )); then
       staged_status="${fg_bold[red]}☆"
+    elif (( commits_head == 0 )) && (( staged == sum )); then
+      staged_status="${fg_bold[yellow]}☆"
     else
       staged_status="${fg_bold[green]}★"
     fi
