@@ -101,6 +101,15 @@ chpwd() {
     git_check_if_worktree
 }
 
+display_counter() {
+  local counter=${1}
+  local format="${fg[red]}(${counter})${reset_color}"
+  if [ ${counter} = 0 ]; then
+    format="${fg[green]}(${counter})${reset_color}"
+  fi
+  echo ${format}
+}
+
 function prompt_precmd {
   local deleted=0
   local modified=0
@@ -125,15 +134,16 @@ function prompt_precmd {
         fi
     done <<< "$status_file_list"
 
-    local filestatus="${fg[red]}×${reset_color}(${deleted}) ${fg[yellow]}!=${reset_color}(${modified}) ${fg[cyan]}?${reset_color}(${untracked})"
+    local filestatus="${fg[red]}×${reset_color}$(display_counter ${deleted}) ${fg[yellow]}!=${reset_color}$(display_counter ${modified}) ${fg[cyan]}?${reset_color}$(display_counter ${untracked})"
     local branch="${fg_bold[yellow]}%b%i${reset_color}%f%u%c"
 
     branch_format="(${branch} ${filestatus})"
 
     zstyle ':vcs_info:*:prompt:*' formats "${branch_format}"
 	
-    vcs_info 'prompt'
   fi
+
+  vcs_info 'prompt'
 }
 
 
