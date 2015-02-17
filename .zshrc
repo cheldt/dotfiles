@@ -103,20 +103,28 @@ chpwd() {
 
 display_counter() {
   local counter=${1}
-  local format="${fg[red]}(${counter})${reset_color}"
+  local format="${fg[red]}"
+  
   if [ ${counter} = 0 ]; then
-    format="${fg[green]}(${counter})${reset_color}"
+    format="${fg[green]}"
   fi
+  
+  format="${format}(${counter})${reset_color}"
+
   echo ${format}
 }
 
 function prompt_precmd {
+  local commits_ahead=0
   local deleted=0
   local modified=0
+  local staged=0
+  local sum=0
   local untracked=0
   
   if [ "${git_pwd_is_worktree}" = 'true' ]; then 
     local status_file_list="$(git status --porcelain)"
+    commits_ahead=$(git rev-list @{u}..HEAD | wc -l)
 
     while IFS= read -r line; do
         local pattern="${line:0:2}"
@@ -132,12 +140,28 @@ function prompt_precmd {
         if [ "${pattern}" = '??' ]; then
            untracked=$((untracked + 1))
         fi
+
+	if [ "${pattern}" = "M " ] || [ "${pattern}" = "A " ] || [ "${pattern}" = "D " ] || [ "${pattern}" = "R " ] || [ "${pattern}" = "C " ]; then
+	   staged=$((staged +1))
+        fi 
     done <<< "$status_file_list"
 
-    local filestatus="${fg[red]}×${reset_color}$(display_counter ${deleted}) ${fg[yellow]}!=${reset_color}$(display_counter ${modified}) ${fg[cyan]}?${reset_color}$(display_counter ${untracked})"
-    local branch="${fg_bold[yellow]}%b%i${reset_color}%f%u%c"
+    sum=$((staged + deleted + modified + untracked))
 
-    branch_format="(${branch} ${filestatus})"
+    local staged_status
+    
+    if [ ${staged} -lt ${sum} ]; then
+      staged_status="${fg_bold[red]}☆"
+    else
+      staged_status="${fg_bold[green]}★"
+    fi
+
+    staged_status="${staged_status}(${staged}/${sum})${reset_color}"
+
+    local filestatus="∣ ${staged_status} ${fg[red]}×${reset_color}$(display_counter ${deleted}) ${fg[yellow]}≠${reset_color}$(display_counter ${modified}) ${fg[cyan]}?${reset_color}$(display_counter ${untracked})"
+    local branch="${fg_bold[yellow]}%b%i${reset_color}%f ∣ ⬆${commits_ahead}"
+
+    branch_format="[${branch} ${filestatus}]"
 
     zstyle ':vcs_info:*:prompt:*' formats "${branch_format}"
 	
