@@ -174,6 +174,7 @@ function prompt_precmd {
     branch_format="[${branch} ${filestatus}]"
 
     zstyle ':vcs_info:*:prompt:*' formats "${branch_format}"
+    zstyle ':vcs_info:*:prompt:*' actionformats "${branch_format}${action_format}"
   fi
 
   vcs_info 'prompt'
