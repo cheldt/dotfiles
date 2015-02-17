@@ -152,21 +152,28 @@ function prompt_precmd {
     
     if (( staged < sum )); then
       staged_status="${fg_bold[red]}☆"
-    elif (( commits_head == 0 )) && (( staged == sum )); then
-      staged_status="${fg_bold[yellow]}☆"
     else
       staged_status="${fg_bold[green]}★"
     fi
 
     staged_status="${staged_status}(${staged}/${sum})${reset_color}"
 
+    local commits_ahead_status="${fg[green]}"
+
+    if (( commits_ahead == 0 )) && (( staged == sum )) && (( sum > 0 )); then
+      commits_ahead_status="${fg_bold[yellow]}"
+    elif (( commits_ahead > 0 )) && (( staged == sum )) && (( sum == 0 )); then
+      commits_ahead_status="${fg_bold[red]}"
+    fi
+
+    commits_ahead_status="${commits_ahead_status}(${commits_ahead})${reset_color}"
+
     local filestatus="∣ ${staged_status} ${fg[red]}×${reset_color}$(display_counter ${deleted}) ${fg[yellow]}≠${reset_color}$(display_counter ${modified}) ${fg[cyan]}?${reset_color}$(display_counter ${untracked})"
-    local branch="${fg_bold[yellow]}%b%i${reset_color}%f ∣ ⬆$(display_counter ${commits_ahead})"
+    local branch="${fg_bold[yellow]}%b%i${reset_color}%f ∣ ⬆${commits_ahead_status}"
 
     branch_format="[${branch} ${filestatus}]"
 
     zstyle ':vcs_info:*:prompt:*' formats "${branch_format}"
-	
   fi
 
   vcs_info 'prompt'
