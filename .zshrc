@@ -69,7 +69,7 @@ git_check_if_worktree() {
         # running 'git' in repo changes owner of git's index files to root, skip prompt git magic if CWD=/home/*
         git_check_if_workdir_path="${git_check_if_workdir_path:-/root:/etc}"
     else
-        git_check_if_workdir_path="${git_check_if_workdir_path:-/home}"
+        git_check_if_workdir_path="${git_check_if_workdir_path:-/home:/data}"
         git_check_if_workdir_path_exclude="${git_check_if_workdir_path_exclude:-${HOME}/_sshfs}"
     fi
 
@@ -124,7 +124,8 @@ function prompt_precmd {
   
   if [ "${git_pwd_is_worktree}" = 'true' ]; then 
     local status_file_list="$(git status --porcelain)"
-    commits_ahead=$(git rev-list @{u}..HEAD | wc -l)
+    local current_branch="${$(git symbolic-ref HEAD 2>/dev/null)#refs/heads/}"
+    commits_ahead=$(git rev-list --count HEAD ^${current_branch})
 
     while IFS= read -r line; do
         local pattern="${line:0:2}"
