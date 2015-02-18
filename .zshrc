@@ -124,7 +124,7 @@ function prompt_precmd {
   
   if [ "${git_pwd_is_worktree}" = 'true' ]; then 
     local status_file_list="$(git status --porcelain)"
-    local current_branch="${$(git symbolic-ref HEAD 2>/dev/null)#refs/heads/}"
+    local current_branch="$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)"
     commits_ahead=$(git rev-list --count HEAD ^${current_branch})
 
     while IFS= read -r line; do
