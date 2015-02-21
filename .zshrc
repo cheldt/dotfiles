@@ -122,7 +122,9 @@ function prompt_precmd {
   local sum=0
   local untracked=0
   
-  if [ "${git_pwd_is_worktree}" = 'true' ]; then 
+  if [ "${git_pwd_is_worktree}" = 'true' ]; then
+    zmodload zsh/regex
+ 
     local status_file_list="$(git status --porcelain)"
     local current_branch="$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)"
     commits_ahead=$(git rev-list --count HEAD ^${current_branch})
@@ -130,21 +132,21 @@ function prompt_precmd {
     while IFS= read -r line; do
         local pattern="${line:0:2}"
 
-        if [ "${pattern}" = " D" ]; then
-           deleted=$((deleted + 1))
+        if [[ "${pattern}" -regex-match "^[ MARC]D$" ]]; then
+          deleted=$((deleted + 1))
         fi
 
-        if [ "${pattern}" = " M" ]; then
-           modified=$((modified + 1))
+        if [[ "${pattern}" -regex-match "^[ MARC]M$" ]]; then
+          modified=$((modified + 1))
         fi
 
         if [ "${pattern}" = '??' ]; then
-           untracked=$((untracked + 1))
+          untracked=$((untracked + 1))
         fi
 
-	if [ "${pattern}" = "M " ] || [ "${pattern}" = "A " ] || [ "${pattern}" = "D " ] || [ "${pattern}" = "R " ] || [ "${pattern}" = "C " ]; then
-	   staged=$((staged +1))
-        fi 
+	if [[ "${pattern}" -regex-match "^M[ MD]$" ]] || [[ "${pattern}" -regex-match "^A[ MD]$" ]] || [[ "${pattern}" -regex-match "^D[ M]$" ]] || [[ "${pattern}" -regex-match "^R[ MD]$" ]] || [[ "${pattern}" -regex-match "^C[ MD]$" ]]; then
+          staged=$((staged + 1))
+        fi
     done <<< "$status_file_list"
 
     sum=$((staged + deleted + modified + untracked))
