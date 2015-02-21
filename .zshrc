@@ -126,7 +126,7 @@ function prompt_precmd {
     zmodload zsh/regex
  
     local status_file_list="$(git status --porcelain)"
-    local current_branch="$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)"
+    local current_branch="$(git rev-parse --symbolic-full-name --abbrev-ref HEAD@{u})"
     commits_ahead=$(git rev-list --count HEAD ^${current_branch})
 
     while IFS= read -r line; do
