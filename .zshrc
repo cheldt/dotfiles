@@ -116,6 +116,7 @@ display_counter() {
 
 function prompt_precmd {
   local commits_ahead=0
+  local commits_behind=0
   local deleted=0
   local modified=0
   local staged=0
@@ -126,8 +127,9 @@ function prompt_precmd {
     zmodload zsh/regex
  
     local status_file_list="$(git status --porcelain)"
-    local current_branch="$(git rev-parse --symbolic-full-name --abbrev-ref HEAD@{u})"
-    commits_ahead=$(git rev-list --count HEAD ^${current_branch})
+    local upstream="$(git rev-parse --symbolic-full-name --abbrev-ref @{upstream} 2> /dev/null)"
+    if [[ -n "${upstream}" && "${upstream}" != "@{upstream}" ]]; then local has_upstream=true; fi
+    local current_commit_hash="$(git rev-parse HEAD 2> /dev/null)"
 
     while IFS= read -r line; do
         local pattern="${line:0:2}"
@@ -148,6 +150,12 @@ function prompt_precmd {
           staged=$((staged + 1))
         fi
     done <<< "$status_file_list"
+
+    if [[ $has_upstream == true ]]; then
+      local commits_diff="$(git log --pretty=oneline --topo-order --left-right ${current_commit_hash}...${upstream} 2> /dev/null)"
+      local commits_ahead=$(grep -c "^<" <<< "$commits_diff")
+      local commits_behind=$(grep -c "^>" <<< "$commits_diff")
+    fi
 
     sum=$((staged + deleted + modified + untracked))
 
