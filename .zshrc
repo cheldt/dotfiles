@@ -4,6 +4,8 @@
 
 export EDITOR="vim"
 
+[[ -e ~/.profile ]] && emulate sh -c 'source ~/.profile'
+
 ###############
 # Aliases     #
 ###############
