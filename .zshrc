@@ -6,6 +6,8 @@ export EDITOR="vim"
 
 [[ -e ~/.profile ]] && emulate sh -c 'source ~/.profile'
 
+unsetopt NOMATCH
+
 ###############
 # Aliases     #
 ###############
