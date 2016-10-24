@@ -32,5 +32,15 @@ function fish_prompt
     
   set_color normal
 
-  printf "\n> "  
+  set -l suffix
+
+  switch $USER
+  case root toor
+    set_color red
+    set suffix '#'
+  case '*'
+    set suffix '$'
+  end
+
+  echo -e "\n$suffix "
 end
