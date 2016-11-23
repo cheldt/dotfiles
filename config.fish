@@ -42,5 +42,5 @@ function fish_prompt
     set suffix '$'
   end
 
-  echo -e "\n$suffix "
+  echo -e "\n$suffix "(set_color normal)
 end
